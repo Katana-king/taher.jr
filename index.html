@@ -176,14 +176,6 @@
             </div>
         </div>
 
-        <audio ref="bgAudio" loop>
-            <source src="background.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <audio ref="aboutMeAudio">
-            <source src="aboutme.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <script>
@@ -191,12 +183,8 @@
 
         createApp({
             setup() {
-                const isAboutMePlaying = ref(false);
-                const bgAudio = ref(null);
-                const aboutMeAudio = ref(null);
                 const bgVideo = ref(null);
                 const showPopup = ref(true);
-                const originalBgVolume = 0.3;
 
                 const enterSite = () => {
                     showPopup.value = false;
@@ -204,40 +192,12 @@
                     bgVideo.value.play().catch((error) => {
                         console.error('Video playback failed:', error);
                     });
-                    bgAudio.value.volume = originalBgVolume;
-                    bgAudio.value.play().catch((error) => {
-                        console.error('Background music playback failed:', error);
-                    });
                     document.documentElement.requestFullscreen().catch((error) => {
                         console.error('Fullscreen failed:', error);
                     });
                 };
 
-                const toggleAboutMeMusic = () => {
-                    if (isAboutMePlaying.value) {
-                        aboutMeAudio.value.pause();
-                        aboutMeAudio.value.currentTime = 0;
-                        bgAudio.value.volume = originalBgVolume;
-                    } else {
-                        bgAudio.value.volume = originalBgVolume * 0.2;
-                        aboutMeAudio.value.play().catch((error) => {
-                            console.error('About me music playback failed:', error);
-                            bgAudio.value.volume = originalBgVolume;
-                        });
-                    }
-                    isAboutMePlaying.value = !isAboutMePlaying.value;
-                };
-
-                onMounted(() => {
-                    aboutMeAudio.value.volume = 0.5;
-                    aboutMeAudio.value.addEventListener('ended', () => {
-                        isAboutMePlaying.value = false;
-                        aboutMeAudio.value.currentTime = 0;
-                        bgAudio.value.volume = originalBgVolume;
-                    });
-                });
-
-                return { isAboutMePlaying, bgAudio, aboutMeAudio, bgVideo, toggleAboutMeMusic, showPopup, enterSite };
+                return { bgVideo, showPopup, enterSite };
             }
         }).mount('#app');
     </script>
