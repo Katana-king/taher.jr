@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>taherjr</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        #background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        #popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #popup button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #popup button:hover {
+            background-color: #555;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .profile {
+            text-align: center;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(26, 26, 26, 0.8);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+        }
+        .name {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid rgba(255,255,255,0.4);
+        }
+        .last-seen {
+            font-size: 0.8em;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 40px;
+            color: #fff;
+            text-decoration: none;
+        }
+        .music-controls {
+            margin-top: 20px;
+        }
+        .music-controls button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .music-controls button:hover {
+            background-color: #555;
+        }
+        .discord-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .discord-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+        .discord-info {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <video id="background-video" ref="bgVideo" loop>
+        <source src="thj.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="overlay"></div>
+    <div id="app">
+        <video id="background-video" ref="bgVideo" loop>
+            <source src="thj.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="overlay" v-if="!showPopup"></div>
+        <div v-if="showPopup" id="popup">
+            <button @click="enterSite">Enter</button>
+        </div>
+        <div v-else class="container">
+            <div class="profile">
+                <img src="taherjr-avatar.gif" alt="taher.jr avatar" class="profile-avatar">
+                <div class="name">taher.jr</div>
+                <div class="links">
+                    <a href="https://steamcommunity.com/profiles/76561199655576340"><i class="fab fa-steam"></i></a>
+                    <a href="https://open.spotify.com/user/312eisitx4fq7v6fnokccrzsrgpe"><i class="fab fa-spotify"></i></a>
+                    <a href="https://www.youtube.com/channel/UCJ9SW_FTHUTT0KvqtQr36EA"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <div class="profile">
+                <div class="name">⛩ Yakuza Family 🏮</div>
+                <div class="discord-profile">
+                    <img src="discord-avatar.gif" alt="Discord Server Avatar" class="discord-avatar">
+                    <div class="discord-info">
+                        <div>⛩ Yakuza Family 🏮</div>
+                        <div>Invite: <a href="https://discord.gg/RJUeeSVm">https://discord.gg/RJUeeSVm</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <audio ref="bgAudio" loop>
+            <source src="background.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <audio ref="aboutMeAudio">
+            <source src="aboutme.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const isAboutMePlaying = ref(false);
+                const bgAudio = ref(null);
+                const aboutMeAudio = ref(null);
+                const bgVideo = ref(null);
+                const showPopup = ref(true);
+                const originalBgVolume = 0.3;
+
+                const enterSite = () => {
+                    showPopup.value = false;
+                    bgVideo.value.volume = 0.5;
+                    bgVideo.value.play().catch((error) => {
+                        console.error('Video playback failed:', error);
+                    });
+                    bgAudio.value.volume = originalBgVolume;
+                    bgAudio.value.play().catch((error) => {
+                        console.error('Background music playback failed:', error);
+                    });
+                    document.documentElement.requestFullscreen().catch((error) => {
+                        console.error('Fullscreen failed:', error);
+                    });
+                };
+
+                const toggleAboutMeMusic = () => {
+                    if (isAboutMePlaying.value) {
+                        aboutMeAudio.value.pause();
+                        aboutMeAudio.value.currentTime = 0;
+                        bgAudio.value.volume = originalBgVolume;
+                    } else {
+                        bgAudio.value.volume = originalBgVolume * 0.2;
+                        aboutMeAudio.value.play().catch((error) => {
+                            console.error('About me music playback failed:', error);
+                            bgAudio.value.volume = originalBgVolume;
+                        });
+                    }
+                    isAboutMePlaying.value = !isAboutMePlaying.value;
+                };
+
+                onMounted(() => {
+                    aboutMeAudio.value.volume = 0.5;
+                    aboutMeAudio.value.addEventListener('ended', () => {
+                        isAboutMePlaying.value = false;
+                        aboutMeAudio.value.currentTime = 0;
+                        bgAudio.value.volume = originalBgVolume;
+                    });
+                });
+
+                return { isAboutMePlaying, bgAudio, aboutMeAudio, bgVideo, toggleAboutMeMusic, showPopup, enterSite };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
