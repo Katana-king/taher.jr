@@ -145,7 +145,7 @@
 </head>
 <body>
     <div id="app">
-        <video id="background-video" ref="bgVideo" loop playsinline preload="auto">
+        <video id="background-video" ref="bgVideo" loop playsinline preload="auto" muted>
             <source src="thj.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -188,10 +188,14 @@
 
                 const enterSite = () => {
                     showPopup.value = false;
-                    bgVideo.value.volume = 0.5;
-                    bgVideo.value.play().catch((error) => {
-                        console.error('Video playback failed:', error);
-                    });
+                    if (bgVideo.value) {
+                        bgVideo.value.muted = false;
+                        bgVideo.value.volume = 0.5;
+                        bgVideo.value.currentTime = 0;
+                        bgVideo.value.play().catch((error) => {
+                            console.error('Video playback failed:', error);
+                        });
+                    }
                     document.documentElement.requestFullscreen().catch((error) => {
                         console.error('Fullscreen failed:', error);
                     });
