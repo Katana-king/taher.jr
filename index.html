@@ -270,7 +270,19 @@
         }
         .menu-item:hover::before { opacity: 1; }
         .mi { width: 20px; text-align: center; font-size: 0.9rem; }
-        .steam-c{color:#c6d4df} .spot-c{color:#1db954} .yt-c{color:#ff0000}
+        .steam-c{color:#c6d4df} .spot-c{color:#1db954} .yt-c{color:#ff0000} .port-c{color:#ffe600}
+
+        .designed-by { gap: 5px; }
+        .designed-by a {
+            text-decoration: none;
+            font-family: var(--px); font-size: 0.3rem;
+            background: linear-gradient(to right, #ff2d78, #7b2fff, #00f5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: filter 0.2s;
+        }
+        .designed-by a:hover { filter: brightness(1.4); }
 
         /* ── DISCORD PANEL ── */
         .disc-panel {
@@ -403,6 +415,9 @@
                     <a href="https://www.youtube.com/channel/UCJ9SW_FTHUTT0KvqtQr36EA" class="menu-item" target="_blank">
                         <span class="mi yt-c"><i class="fab fa-youtube"></i></span>YOUTUBE
                     </a>
+                    <a href="https://dazzling-sopapillas-15c352.netlify.app/" class="menu-item" target="_blank">
+                        <span class="mi port-c"><i class="fas fa-code"></i></span>DESIGNER PORTFOLIO
+                    </a>
                 </div>
             </div>
 
@@ -429,6 +444,7 @@
         <div class="hud-i"><div class="dot"></div> ONLINE</div>
         <div class="hud-i">MAP: YAKUZA DOMAIN</div>
         <div class="sp"></div>
+        <div class="hud-i designed-by">DESIGNED BY <a href="https://dazzling-sopapillas-15c352.netlify.app/" target="_blank">KATANA-KING</a></div>
         <div class="hud-clk">{{ clock }}</div>
     </div>
 </div>
