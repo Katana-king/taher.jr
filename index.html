@@ -3,207 +3,510 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>taherjr</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <title>taher.jr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cyan:   #00f5ff;
+            --pink:   #ff2d78;
+            --yellow: #ffe600;
+            --purple: #7b2fff;
+            --green:  #00ff88;
+            --dark:   #06050f;
+            --darker: #020208;
+            --panel:  rgba(6, 5, 15, 0.90);
+            --border: rgba(0, 245, 255, 0.25);
+            --px: 'Press Start 2P', monospace;
+        }
+
+        html, body {
+            width: 100%; height: 100%;
             overflow: hidden;
+            background: var(--dark);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* VIDEO */
+        #bg-video {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.2;
+            filter: saturate(0.4) hue-rotate(180deg) brightness(0.6);
+        }
+
+        /* PIXEL GRID */
+        .pixel-grid {
+            position: fixed; inset: 0; z-index: 1;
+            background-image:
+                linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+        }
+
+        /* SCANLINES */
+        .scanlines {
+            position: fixed; inset: 0; z-index: 2;
+            background: repeating-linear-gradient(
+                to bottom, transparent, transparent 3px,
+                rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* CANVAS */
+        #particle-canvas {
+            position: fixed; inset: 0; z-index: 3; pointer-events: none;
+        }
+
+        /* FLASH */
+        .flash {
+            position: fixed; inset: 0; z-index: 200;
+            background: var(--cyan); opacity: 0; pointer-events: none;
+            transition: opacity 0.05s;
+        }
+        .flash.pop { opacity: 0.18; }
+
+        /* ══════════════════════════
+           TITLE SCREEN
+        ══════════════════════════ */
+        #title-screen {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: var(--darker);
+            gap: 30px;
+            transition: opacity 0.6s ease;
+        }
+        #title-screen.fade-out { opacity: 0; pointer-events: none; }
+
+        .title-logo {
+            font-family: var(--px);
+            font-size: clamp(1rem, 4vw, 2rem);
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan), 0 0 30px var(--cyan), 4px 4px 0 var(--purple);
+            letter-spacing: 0.06em;
+            position: relative;
+            animation: glitch 5s infinite;
+        }
+        .title-logo::before {
+            content: 'taher.jr'; position: absolute; inset: 0;
+            color: var(--pink); clip-path: inset(0 0 65% 0);
+            animation: glitch-t 5s infinite; left: 3px; opacity: 0;
+        }
+        .title-logo::after {
+            content: 'taher.jr'; position: absolute; inset: 0;
+            color: var(--yellow); clip-path: inset(65% 0 0 0);
+            animation: glitch-b 5s infinite; left: -3px; opacity: 0;
+        }
+        @keyframes glitch    { 0%,88%,100%{transform:none}89%{transform:skewX(-5deg)}91%{transform:skewX(5deg)}93%{transform:none}96%{transform:skewX(-2deg)} }
+        @keyframes glitch-t  { 0%,88%,100%{opacity:0}89%,93%{opacity:1;transform:translateX(-4px)} }
+        @keyframes glitch-b  { 0%,88%,100%{opacity:0}90%,94%{opacity:1;transform:translateX(4px)} }
+
+        .title-sub {
+            font-family: var(--px); font-size: 0.42rem;
+            color: var(--yellow); letter-spacing: 0.15em; opacity: 0.75;
+        }
+
+        .hp-row {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .hp-lbl { font-family: var(--px); font-size: 0.38rem; color: var(--cyan); letter-spacing: 0.15em; }
+        .hp-bar { width: 190px; height: 12px; border: 2px solid var(--cyan); padding: 2px; }
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--green), var(--cyan));
+            box-shadow: 0 0 6px var(--green);
+            animation: hp-pulse 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes hp-pulse { from{width:100%} to{width:68%} }
+
+        .press-btn {
+            font-family: var(--px); font-size: 0.48rem;
+            color: var(--pink); background: transparent;
+            border: 2px solid var(--pink);
+            padding: 14px 36px; cursor: pointer;
+            letter-spacing: 0.08em;
+            animation: blink 1.1s step-start infinite;
+            transition: background 0.1s, color 0.1s;
+        }
+        .press-btn:hover { background: var(--pink); color: #000; animation: none; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* ══════════════════════════
+           GAME UI
+        ══════════════════════════ */
+        #game-ui {
+            position: fixed; inset: 0; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.8s ease 0.3s;
+        }
+        #game-ui.show { opacity: 1; pointer-events: all; }
+
+        /* RPG window */
+        .rpg-box {
+            background: var(--panel);
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 0 1px rgba(0,245,255,0.08),
+                        inset 0 0 24px rgba(0,245,255,0.03),
+                        0 0 32px rgba(0,245,255,0.07);
             position: relative;
         }
-        #background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
+        .rpg-box::before {
+            content: ''; position: absolute; inset: 4px;
+            border: 1px solid rgba(0,245,255,0.07); pointer-events: none;
         }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: -1;
+        .cpx { position: absolute; width: 8px; height: 8px; background: var(--cyan); }
+        .cpx.tl{top:-2px;left:-2px} .cpx.tr{top:-2px;right:-2px}
+        .cpx.bl{bottom:-2px;left:-2px} .cpx.br{bottom:-2px;right:-2px}
+
+        /* GRID */
+        .layout {
+            display: grid;
+            grid-template-columns: 250px 320px;
+            grid-template-rows: auto auto;
+            gap: 12px;
+            width: min(610px, 95vw);
         }
-        #popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+
+        /* ── CHAR PANEL ── */
+        .char-panel {
+            grid-column: 1; grid-row: 1 / 3;
+            padding: 18px 14px;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 12px;
         }
-        #popup button {
-            background-color: #333;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            border-radius: 5px;
+        .panel-hdr {
+            font-family: var(--px); font-size: 0.4rem;
+            color: var(--cyan); letter-spacing: 0.2em;
+            border-bottom: 1px solid var(--border);
+            width: 100%; padding-bottom: 8px; text-align: center;
         }
-        #popup button:hover {
-            background-color: #555;
+
+        .sprite-wrap {
+            position: relative; width: 96px; height: 96px;
         }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
+        .sprite-wrap::after {
+            content: ''; position: absolute;
+            bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 70px; height: 10px;
+            background: radial-gradient(ellipse, rgba(0,245,255,0.35) 0%, transparent 70%);
+            animation: shadow-p 3s ease-in-out infinite;
         }
-        .profile {
-            text-align: center;
-            margin: 20px;
-            padding: 20px;
-            background-color: rgba(26, 26, 26, 0.8);
-            border-radius: 10px;
-            width: 80%;
-            max-width: 600px;
+        @keyframes shadow-p { 0%,100%{opacity:.5;transform:translateX(-50%) scaleX(1)} 50%{opacity:1;transform:translateX(-50%) scaleX(.8)} }
+
+        .sprite {
+            width: 96px; height: 96px; border-radius: 4px;
+            object-fit: cover; border: 2px solid var(--cyan);
+            box-shadow: 0 0 18px rgba(0,245,255,0.3);
+            animation: sp-float 3.5s ease-in-out infinite;
+            display: block; position: relative; z-index: 1;
         }
-        .name {
-            font-size: 2em;
-            margin-bottom: 10px;
+        @keyframes sp-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+
+        .lv {
+            position: absolute; top: -8px; right: -8px;
+            background: var(--yellow); color: #000;
+            font-family: var(--px); font-size: 0.35rem;
+            padding: 3px 5px; z-index: 2;
         }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 15px;
-            border: 3px solid rgba(255,255,255,0.4);
+
+        .char-name {
+            font-family: var(--px); font-size: 0.6rem; color: #fff;
+            text-shadow: 0 0 10px var(--cyan);
         }
-        .last-seen {
-            font-size: 0.8em;
-            color: #cccccc;
-            margin-bottom: 20px;
+        .char-cls {
+            font-family: var(--px); font-size: 0.32rem; color: var(--pink);
+            letter-spacing: 0.08em;
         }
-        .links {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+
+        .stats { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+        .stat {
+            display: grid; grid-template-columns: 22px 1fr 26px;
+            align-items: center; gap: 5px;
         }
-        .links a {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background-color: #333;
-            border-radius: 5px;
-            text-align: center;
-            line-height: 40px;
-            color: #fff;
-            text-decoration: none;
+        .slbl { font-family: var(--px); font-size: 0.32rem; color: var(--yellow); }
+        .sbar { height: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        .sfill { height: 100%; box-shadow: 0 0 4px currentColor; }
+        .sval { font-family: var(--px); font-size: 0.28rem; color: #fff; text-align: right; }
+
+        /* ── SOCIALS PANEL ── */
+        .socials-panel {
+            grid-column: 2; grid-row: 1; padding: 14px 16px;
         }
-        .music-controls {
-            margin-top: 20px;
+        .panel-hdr2 {
+            font-family: var(--px); font-size: 0.38rem;
+            color: var(--cyan); letter-spacing: 0.2em;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
         }
-        .music-controls button {
-            background-color: #333;
-            color: #fff;
-            border: none;
-            padding: 10px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 5px;
+        .panel-hdr2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .menu-list { display: flex; flex-direction: column; gap: 5px; }
+        .menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 10px; border: 1px solid transparent;
+            text-decoration: none; color: rgba(255,255,255,0.65);
+            font-family: var(--px); font-size: 0.34rem;
+            letter-spacing: 0.04em;
+            transition: all 0.15s; position: relative;
         }
-        .music-controls button:hover {
-            background-color: #555;
+        .menu-item::before {
+            content: '▶'; font-size: 0.28rem;
+            color: var(--yellow); opacity: 0; transition: opacity 0.15s;
         }
-        .discord-profile {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
+        .menu-item:hover {
+            border-color: var(--border);
+            background: rgba(0,245,255,0.05);
+            color: #fff; padding-left: 14px;
         }
-        .discord-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+        .menu-item:hover::before { opacity: 1; }
+        .mi { width: 20px; text-align: center; font-size: 0.9rem; }
+        .steam-c{color:#c6d4df} .spot-c{color:#1db954} .yt-c{color:#ff0000}
+
+        /* ── DISCORD PANEL ── */
+        .disc-panel {
+            grid-column: 2; grid-row: 2; padding: 14px 16px;
         }
-        .discord-info {
-            text-align: left;
+        .disc-inner { display: flex; align-items: center; gap: 12px; }
+        .disc-av {
+            width: 50px; height: 50px; border-radius: 4px;
+            border: 2px solid var(--purple); object-fit: cover;
+            box-shadow: 0 0 12px rgba(123,47,255,0.5); flex-shrink: 0;
+        }
+        .disc-info { flex: 1; }
+        .disc-name { font-family: var(--px); font-size: 0.38rem; color: #fff; margin-bottom: 5px; line-height: 1.6; }
+        .disc-inv { font-family: var(--px); font-size: 0.3rem; color: var(--purple); letter-spacing: 0.04em; }
+        .disc-inv a { color: var(--cyan); text-decoration: none; }
+        .disc-inv a:hover { color: var(--yellow); }
+        .disc-btn {
+            display: inline-block; margin-top: 8px;
+            font-family: var(--px); font-size: 0.28rem;
+            background: var(--purple); color: #fff;
+            border: none; padding: 7px 10px;
+            cursor: pointer; text-decoration: none;
+            transition: background 0.15s;
+        }
+        .disc-btn:hover { background: #9b5fff; }
+
+        /* HUD */
+        .hud {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            z-index: 15; height: 34px;
+            background: rgba(2,2,8,0.96);
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 18px; gap: 20px;
+        }
+        .hud-i {
+            font-family: var(--px); font-size: 0.3rem;
+            color: rgba(255,255,255,0.3); letter-spacing: 0.1em;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .dot { width: 6px; height: 6px; background: var(--cyan); box-shadow: 0 0 4px var(--cyan); animation: blink 2s step-start infinite; }
+        .sp { flex: 1; }
+        .hud-clk { font-family: var(--px); font-size: 0.3rem; color: var(--yellow); }
+
+        /* SLIDE-IN */
+        .si { opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease; }
+        .si.in { opacity: 1; transform: none; }
+        .d1{transition-delay:.05s} .d2{transition-delay:.18s} .d3{transition-delay:.3s}
+
+        @media (max-width: 640px) {
+            .layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto; width: 92vw; }
+            .char-panel { grid-column:1; grid-row:1; flex-direction:row; flex-wrap:wrap; justify-content:center; }
+            .socials-panel { grid-column:1; grid-row:2; }
+            .disc-panel { grid-column:1; grid-row:3; }
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <video id="background-video" ref="bgVideo" loop playsinline preload="auto" muted>
-            <source src="thj.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <div class="overlay" v-if="!showPopup"></div>
-        <div v-if="showPopup" id="popup">
-            <button @click="enterSite">Enter</button>
-        </div>
-        <div v-else class="container">
-            <div class="profile">
-                <img src="taherjr-avatar.gif" alt="taher.jr avatar" class="profile-avatar">
-                <div class="name">taher.jr</div>
-                <div class="links">
-                    <a href="https://steamcommunity.com/profiles/76561199655576340"><i class="fab fa-steam"></i></a>
-                    <a href="https://open.spotify.com/user/312eisitx4fq7v6fnokccrzsrgpe"><i class="fab fa-spotify"></i></a>
-                    <a href="https://www.youtube.com/channel/UCJ9SW_FTHUTT0KvqtQr36EA"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
+<div id="app">
+    <video id="bg-video" ref="bgVideo" loop playsinline preload="auto" muted>
+        <source src="thj.mp4" type="video/mp4">
+    </video>
+    <div class="pixel-grid"></div>
+    <div class="scanlines"></div>
+    <canvas id="particle-canvas"></canvas>
+    <div class="flash" :class="{ pop: flashPop }"></div>
 
-            <div class="profile">
-                <div class="name">⛩ Yakuza Family 🏮</div>
-                <div class="discord-profile">
-                    <img src="discord-avatar.gif" alt="Discord Server Avatar" class="discord-avatar">
-                    <div class="discord-info">
-                        <div>⛩ Yakuza Family 🏮</div>
-                        <div>Invite: <a href="https://discord.gg/RJUeeSVm">https://discord.gg/RJUeeSVm</a></div>
+    <!-- TITLE SCREEN -->
+    <div id="title-screen" :class="{ 'fade-out': entered }" v-if="!gone">
+        <div class="title-logo">taher.jr</div>
+        <div class="title-sub">— PROFILE CARD v1.0 —</div>
+        <div class="hp-row">
+            <div class="hp-lbl">HP ████████░░ 80/100</div>
+            <div class="hp-bar"><div class="hp-fill"></div></div>
+        </div>
+        <button class="press-btn" @click="enter">▶ PRESS START</button>
+    </div>
+
+    <!-- GAME UI -->
+    <div id="game-ui" :class="{ show: showUI }">
+        <div class="layout">
+
+            <!-- CHARACTER -->
+            <div class="rpg-box char-panel si d1" :class="{ in: showUI }">
+                <div class="cpx tl"></div><div class="cpx tr"></div>
+                <div class="cpx bl"></div><div class="cpx br"></div>
+                <div class="panel-hdr">CHARACTER</div>
+                <div class="sprite-wrap">
+                    <img src="taherjr-avatar.gif" alt="taher.jr" class="sprite">
+                    <div class="lv">LV.99</div>
+                </div>
+                <div class="char-name">taher.jr</div>
+                <div class="char-cls">⛩ YAKUZA CLAN</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="slbl">HP</div>
+                        <div class="sbar"><div class="sfill" style="width:82%;background:#00ff88;color:#00ff88"></div></div>
+                        <div class="sval">82</div>
+                    </div>
+                    <div class="stat">
+                        <div class="slbl">MP</div>
+                        <div class="sbar"><div class="sfill" style="width:65%;background:#00f5ff;color:#00f5ff"></div></div>
+                        <div class="sval">65</div>
+                    </div>
+                    <div class="stat">
+                        <div class="slbl">XP</div>
+                        <div class="sbar"><div class="sfill" style="width:91%;background:#ffe600;color:#ffe600"></div></div>
+                        <div class="sval">91</div>
+                    </div>
+                    <div class="stat">
+                        <div class="slbl">ATK</div>
+                        <div class="sbar"><div class="sfill" style="width:77%;background:#ff2d78;color:#ff2d78"></div></div>
+                        <div class="sval">77</div>
                     </div>
                 </div>
             </div>
-        </div>
 
+            <!-- SOCIALS -->
+            <div class="rpg-box socials-panel si d2" :class="{ in: showUI }">
+                <div class="cpx tl"></div><div class="cpx tr"></div>
+                <div class="cpx bl"></div><div class="cpx br"></div>
+                <div class="panel-hdr2">SOCIALS</div>
+                <div class="menu-list">
+                    <a href="https://steamcommunity.com/profiles/76561199655576340" class="menu-item" target="_blank">
+                        <span class="mi steam-c"><i class="fab fa-steam"></i></span>STEAM
+                    </a>
+                    <a href="https://open.spotify.com/user/312eisitx4fq7v6fnokccrzsrgpe" class="menu-item" target="_blank">
+                        <span class="mi spot-c"><i class="fab fa-spotify"></i></span>SPOTIFY
+                    </a>
+                    <a href="https://www.youtube.com/channel/UCJ9SW_FTHUTT0KvqtQr36EA" class="menu-item" target="_blank">
+                        <span class="mi yt-c"><i class="fab fa-youtube"></i></span>YOUTUBE
+                    </a>
+                </div>
+            </div>
+
+            <!-- DISCORD -->
+            <div class="rpg-box disc-panel si d3" :class="{ in: showUI }">
+                <div class="cpx tl"></div><div class="cpx tr"></div>
+                <div class="cpx bl"></div><div class="cpx br"></div>
+                <div class="panel-hdr2">GUILD</div>
+                <div class="disc-inner">
+                    <img src="discord-avatar.gif" alt="Guild" class="disc-av">
+                    <div class="disc-info">
+                        <div class="disc-name">⛩ Yakuza Family 🏮</div>
+                        <div class="disc-inv">INVITE: <a href="https://discord.gg/RJUeeSVm" target="_blank">discord.gg/RJUeeSVm</a></div>
+                        <a href="https://discord.gg/RJUeeSVm" class="disc-btn" target="_blank">▶ JOIN GUILD</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <script>
-        const { createApp, ref, onMounted } = Vue;
+    <!-- HUD -->
+    <div class="hud" v-if="showUI">
+        <div class="hud-i"><div class="dot"></div> ONLINE</div>
+        <div class="hud-i">MAP: YAKUZA DOMAIN</div>
+        <div class="sp"></div>
+        <div class="hud-clk">{{ clock }}</div>
+    </div>
+</div>
 
-        createApp({
-            setup() {
-                const bgVideo = ref(null);
-                const showPopup = ref(true);
+<script>
+const { createApp, ref, onMounted, onUnmounted } = Vue;
+createApp({
+    setup() {
+        const bgVideo  = ref(null);
+        const entered  = ref(false);
+        const gone     = ref(false);
+        const showUI   = ref(false);
+        const flashPop = ref(false);
+        const clock    = ref('');
+        let clockInt = null, animFrame = null;
 
-                const enterSite = () => {
-                    showPopup.value = false;
-                    if (bgVideo.value) {
-                        bgVideo.value.muted = false;
-                        bgVideo.value.volume = 0.5;
-                        bgVideo.value.currentTime = 0;
-                        bgVideo.value.play().catch((error) => {
-                            console.error('Video playback failed:', error);
-                        });
-                    }
-                    document.documentElement.requestFullscreen().catch((error) => {
-                        console.error('Fullscreen failed:', error);
-                    });
-                };
+        const updateClock = () => {
+            clock.value = new Date().toLocaleTimeString('en-US', { hour12: false });
+        };
 
-                return { bgVideo, showPopup, enterSite };
+        const enter = () => {
+            flashPop.value = true;
+            setTimeout(() => flashPop.value = false, 120);
+            entered.value = true;
+            if (bgVideo.value) {
+                bgVideo.value.muted = false;
+                bgVideo.value.volume = 0.4;
+                bgVideo.value.currentTime = 0;
+                bgVideo.value.play().catch(() => {});
             }
-        }).mount('#app');
-    </script>
+            document.documentElement.requestFullscreen().catch(() => {});
+            setTimeout(() => {
+                gone.value = true;
+                setTimeout(() => showUI.value = true, 80);
+            }, 600);
+        };
+
+        const initParticles = () => {
+            const canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const resize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+            resize();
+            window.addEventListener('resize', resize);
+            const COLS = ['#00f5ff','#ff2d78','#ffe600','#7b2fff','#00ff88'];
+            const pts = Array.from({length:55}, () => ({
+                x: Math.random() * innerWidth,
+                y: Math.random() * innerHeight,
+                sz: [2,2,4][Math.floor(Math.random()*3)],
+                col: COLS[Math.floor(Math.random()*COLS.length)],
+                vx: (Math.random()-.5)*.4,
+                vy: -Math.random()*.5-.1,
+                a: Math.random(), ad: Math.random()<.5?1:-1
+            }));
+            const tick = () => {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                for (const p of pts) {
+                    p.x+=p.vx; p.y+=p.vy; p.a+=.007*p.ad;
+                    if(p.a>=1)p.ad=-1; if(p.a<=0)p.ad=1;
+                    if(p.y<-8)p.y=canvas.height+8;
+                    if(p.x<-8)p.x=canvas.width+8;
+                    if(p.x>canvas.width+8)p.x=-8;
+                    ctx.globalAlpha=p.a*.55;
+                    ctx.fillStyle=p.col;
+                    ctx.fillRect(Math.floor(p.x),Math.floor(p.y),p.sz,p.sz);
+                }
+                ctx.globalAlpha=1;
+                animFrame=requestAnimationFrame(tick);
+            };
+            tick();
+        };
+
+        onMounted(() => { initParticles(); updateClock(); clockInt=setInterval(updateClock,1000); });
+        onUnmounted(() => { if(animFrame)cancelAnimationFrame(animFrame); clearInterval(clockInt); });
+
+        return { bgVideo, entered, gone, showUI, flashPop, clock, enter };
+    }
+}).mount('#app');
+</script>
 </body>
 </html>
